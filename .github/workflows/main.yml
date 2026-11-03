@@ -1,0 +1,36 @@
+name: Gerar APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extrair projeto
+        run: |
+          mkdir projeto
+          unzip -q *.zip -d projeto
+          find projeto -type f -name gradlew
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Gerar APK
+        run: |
+          WRAPPER=$(find projeto -type f -name gradlew | head -n 1)
+          test -n "$WRAPPER"
+          cd "$(dirname "$WRAPPER")"
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Salvar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: jogo-pedro-apk
+          path: projeto/**/app/build/outputs/apk/debug/*.apk
